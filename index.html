@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHUNITHM レート計算機</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&family=M+PLUS+1p:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <style>
+        /* CSS Bundled */
+        :root {
+            --primary-color: #ffd700;
+            /* Gold */
+            --accent-color: #00ffff;
+            /* Cyan */
+            --bg-dark: #0a0a12;
+            --panel-bg: rgba(20, 20, 30, 0.7);
+            --text-glow: 0 0 10px rgba(255, 215, 0, 0.7);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Exo 2', 'M PLUS 1p', sans-serif;
+            background-color: var(--bg-dark);
+            color: white;
+            min-height: 100vh;
+            /* Changed from height to min-height */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+            /* Allow scrolling */
+            background: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
+            background-attachment: fixed;
+            /* Keep bg fixed while scrolling */
+        }
+
+        .background-animation {
+            position: fixed;
+            /* Fix animation to background */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                linear-gradient(45deg, transparent 48%, rgba(0, 255, 255, 0.1) 50%, transparent 52%),
+                linear-gradient(-45deg, transparent 48%, rgba(0, 255, 255, 0.1) 50%, transparent 52%);
+            background-size: 60px 60px;
+            z-index: -1;
+            animation: bg-scroll 20s linear infinite;
+        }
+
+        @keyframes bg-scroll {
+            0% {
+                background-position: 0 0;
+            }
+
+            100% {
+                background-position: 60px 60px;
+            }
+        }
+
+        .container {
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            z-index: 10;
+            transform: scale(0.9);
+            /* User requested 0.9x size */
+            transform-origin: center top;
+            /* Render from top */
+            margin: 20px 0;
+        }
+
+        header {
+            margin-bottom: 2rem;
+        }
+
+        .glow-text {
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: var(--primary-color);
+            text-shadow: var(--text-glow);
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            -webkit-backdrop-filter: blur(10px);
+            /* For Safari */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--accent-color);
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #333;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.5rem;
+            font-family: inherit;
+            font-weight: 700;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .main-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(90deg, #ff8c00, #ffd700);
+            color: black;
+            font-size: 1.5rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: transform 0.1s, filter 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .main-btn:hover {
+            filter: brightness(1.2);
+            transform: scale(1.02);
+        }
+
+        .main-btn:active {
+            transform: scale(0.98);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            margin: 0;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            text-shadow: none;
+            color: white;
+        }
+
+        .badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .badge.new {
+            background-color: var(--accent-color);
+            color: black;
+        }
+
+        .badge.best {
+            background-color: #555;
+            color: white;
+        }
+
+        .main-stat .stat-value {
+            color: #ff0055;
+            /* Highlight total */
+            text-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .io-panel {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .io-panel h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            color: #aaa;
+        }
+
+        .sub-btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #555;
+            border-radius: 8px;
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .sub-btn:hover {
+            color: white;
+            border-color: white;
+        }
+
+        .stats-panel {
+            display: flex;
+            justify-content: space-around;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--primary-color);
+        }
+
+        .list-panel h3 {
+            text-align: left;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.5rem;
+        }
+
+        .table-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 8px;
+            color: #888;
+            font-size: 0.7rem;
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        tr:nth-child(1) td {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        /* Top 1 */
+        tr:nth-child(2) td {
+            color: #c0c0c0;
+        }
+
+        /* Top 2 */
+        tr:nth-child(3) td {
+            color: #cd7f32;
+        }
+
+        /* Top 3 */
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ff4444;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .delete-btn:hover {
+            color: #ff0000;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+
+        footer p {
+            color: #555;
+            font-size: 0.8rem;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="background-animation"></div>
+    <noscript>
+        <div
+            style="color: white; background: red; padding: 20px; text-align: center; font-size: 1.5rem; z-index: 1000; position: fixed; top: 0; left: 0; width: 100%;">
+            このツールを使用するにはJavaScriptを有効にしてください。<br>
+            Please enable JavaScript to use this tool.
+        </div>
+    </noscript>
+
+    <!-- Error display for environments without console -->
+    <div id="global-error"
+        style="display: none; color: white; background: rgba(255, 0, 0, 0.8); padding: 10px; margin: 10px; border-radius: 5px; text-align: left; font-size: 0.8rem; z-index: 2000; position: fixed; bottom: 0; left: 0; width: 100%; white-space: pre-wrap;">
+    </div>
+
+    <div class="container">
+        <header>
+            <h1 class="glow-text">RATING CALCULATOR</h1>
+        </header>
+
+        <main>
+            <div class="input-panel glass-panel">
+                <div class="input-group">
+                    <label for="song-name">曲名 (任意)</label>
+                    <input type="text" id="song-name" placeholder="曲名を入力">
+                </div>
+
+                <div class="input-group">
+                    <label for="chart-constant">譜面定数 (例: 14.0)</label>
+                    <input type="number" id="chart-constant" placeholder="14.0" step="0.1" min="0" max="16.0">
+                </div>
+
+                <div class="input-group">
+                    <label for="score">スコア</label>
+                    <input type="number" id="score" placeholder="1010000" min="0" max="1010000">
+                </div>
+
+                <div class="input-group checkbox-group">
+                    <input type="checkbox" id="is-new-song">
+                    <label for="is-new-song">新曲枠として追加</label>
+                </div>
+
+                <div class="btn-group">
+                    <button id="add-btn" class="main-btn">リストに追加</button>
+                    <!-- <button id="calc-btn" class="calc-btn">CALC ONLY</button> -->
+                </div>
+            </div>
+
+            <div class="stats-panel glass-panel">
+                <div class="stat-box">
+                    <div class="stat-label">BEST枠(30) 平均</div>
+                    <div class="stat-value" id="best-rating">0.00</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">新曲枠(20) 平均</div>
+                    <div class="stat-value" id="new-rating">0.00</div>
+                </div>
+                <div class="stat-box main-stat">
+                    <div class="stat-label">合計平均 (50曲)</div>
+                    <div class="stat-value" id="total-rating-points">0.00</div>
+                </div>
+            </div>
+
+            <div class="lists-container">
+                <div class="list-panel glass-panel">
+                    <h3>新曲枠リスト (最大20)</h3>
+                    <div class="table-container">
+                        <table id="new-song-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>曲名</th>
+                                    <th>定数</th>
+                                    <th>スコア</th>
+                                    <th>レート</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Rows will be added here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="list-panel glass-panel">
+                    <h3>BEST枠リスト (最大30)</h3>
+                    <div class="table-container">
+                        <table id="best-song-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>曲名</th>
+                                    <th>定数</th>
+                                    <th>スコア</th>
+                                    <th>レート</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Rows will be added here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <button id="clear-btn" class="sub-btn">全削除</button>
+
+                <div class="io-panel">
+                    <h3>データ移行</h3>
+                    <div class="btn-group">
+                        <button id="export-btn" class="main-btn"
+                            style="background: linear-gradient(90deg, #444, #666); font-size: 1rem;">保存
+                            (エクスポート)</button>
+                        <button id="import-btn" class="main-btn"
+                            style="background: linear-gradient(90deg, #444, #666); font-size: 1rem;">読込 (インポート)</button>
+                        <input type="file" id="file-input" style="display: none;" accept=".json">
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>非公式ツール</p>
+        </footer>
+    </div>
+    <script>
+        // Global error handler for HTML Viewers
+        window.onerror = function (message, source, lineno, colno, error) {
+            const errorDiv = document.getElementById('global-error');
+            if (errorDiv) {
+                errorDiv.style.display = 'block';
+                errorDiv.textContent += `Error: ${message} at ${lineno}:${colno}\n`;
+            }
+        };
+
+        try {
+            document.addEventListener('DOMContentLoaded', () => {
+                const addBtn = document.getElementById('add-btn');
+                const clearBtn = document.getElementById('clear-btn');
+                const exportBtn = document.getElementById('export-btn');
+                const importBtn = document.getElementById('import-btn');
+                const fileInput = document.getElementById('file-input');
+
+                const songNameInput = document.getElementById('song-name');
+                const constantInput = document.getElementById('chart-constant');
+                const scoreInput = document.getElementById('score');
+                const isNewSongInput = document.getElementById('is-new-song');
+
+                const bestRatingDisplay = document.getElementById('best-rating');
+                const newRatingDisplay = document.getElementById('new-rating');
+                const totalRatingDisplay = document.getElementById('total-rating-points');
+
+                // Separate table bodies
+                const newSongTableBody = document.querySelector('#new-song-table tbody');
+                const bestSongTableBody = document.querySelector('#best-song-table tbody');
+
+                // Load from local storage
+                let songList = [];
+                try {
+                    const stored = localStorage.getItem('chunithmValcalc_songList');
+                    if (stored) {
+                        songList = JSON.parse(stored);
+                    }
+                } catch (e) {
+                    console.error('LocalStorage access failed:', e);
+                    // Non-critical, continue
+                }
+
+                // Initial render
+                updateUI();
+
+                addBtn.addEventListener('click', () => {
+                    addSong();
+                });
+
+                clearBtn.addEventListener('click', () => {
+                    if (confirm('全てのデータを削除・リセットしてもよろしいですか？')) {
+                        songList = [];
+                        updateUI();
+                    }
+                });
+
+                // Export Logic
+                exportBtn.addEventListener('click', () => {
+                    try {
+                        const dataStr = JSON.stringify(songList, null, 2);
+                        const blob = new Blob([dataStr], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+
+                        const a = document.createElement('a');
+                        a.href = url;
+                        const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+                        a.download = `chunithm_data_${date}.json`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    } catch (e) {
+                        alert('このビューアではファイルの保存(エクスポート)がサポートされていない可能性があります。\n' + e.message);
+                    }
+                });
+
+                // Import Logic
+                importBtn.addEventListener('click', () => {
+                    fileInput.click();
+                });
+
+                fileInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const loadedData = JSON.parse(event.target.result);
+                            if (Array.isArray(loadedData)) {
+                                if (confirm('現在のデータを上書きして読み込みますか？')) {
+                                    songList = loadedData;
+                                    updateUI();
+                                    alert('読み込み完了しました。');
+                                }
+                            } else {
+                                alert('データ形式が正しくありません。');
+                            }
+                        } catch (err) {
+                            alert('読み込みに失敗しました。ファイルが破損している可能性があります。\n' + err.message);
+                        }
+                        fileInput.value = ''; // reset
+                    };
+                    reader.readAsText(file);
+                });
+
+                // Support enter key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        addSong();
+                    }
+                });
+
+                function addSong() {
+                    const name = songNameInput.value.trim() || '曲名なし';
+                    const constant = parseFloat(constantInput.value);
+                    const score = parseInt(scoreInput.value);
+                    const isNew = isNewSongInput.checked;
+
+                    if (isNaN(constant) || isNaN(score)) {
+                        alert('譜面定数とスコアに正しい数値を入力してください。');
+                        return;
+                    }
+
+                    const rating = calculateRating(constant, score);
+
+                    songList.push({
+                        name,
+                        constant,
+                        score,
+                        rating,
+                        isNew,
+                        id: Date.now()
+                    });
+
+                    // Clear inputs
+                    songNameInput.value = '';
+                    scoreInput.value = '';
+                    songNameInput.focus();
+
+                    updateUI();
+                }
+
+                function calculateRating(constant, score) {
+                    let rating = 0;
+
+                    if (score >= 1009000) {
+                        rating = constant + 2.15;
+                    } else if (score >= 1007500) {
+                        rating = constant + 2.0 + (score - 1007500) * 0.0001;
+                    } else if (score >= 1005000) {
+                        rating = constant + 1.5 + (score - 1005000) * 0.0002;
+                    } else if (score >= 1000000) {
+                        rating = constant + 1.0 + (score - 1000000) * 0.0001;
+                    } else if (score >= 990000) {
+                        rating = constant + 0.6 + (score - 990000) * (0.01 / 250);
+                    } else if (score >= 975000) {
+                        rating = constant + (score - 975000) * (0.01 / 250);
+                    } else if (score >= 950000) {
+                        rating = constant - 1.67 + (score - 950000) * (0.01 / 150);
+                    } else if (score >= 925000) {
+                        rating = constant - 3.34 + (score - 925000) * (0.01 / 150);
+                    } else if (score >= 900000) {
+                        rating = constant - 5.0 + (score - 900000) * (0.01 / 150);
+                    } else if (score >= 800000) {
+                        if (constant > 5) {
+                            rating = (constant - 5) / 2 + (score - 800000) * ((constant - 5) / 200000);
+                        } else {
+                            rating = 0;
+                        }
+                    } else if (score >= 500000) {
+                        if (constant > 5) {
+                            rating = (score - 500000) * ((constant - 5) / 600000);
+                        } else {
+                            rating = 0;
+                        }
+                    } else {
+                        rating = 0;
+                    }
+
+                    if (rating < 0) rating = 0;
+                    return Math.floor(rating * 100) / 100;
+                }
+
+                function renderTable(tbody, songs) {
+                    tbody.innerHTML = '';
+                    songs.forEach((song, index) => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${song.name}</td>
+                    <td>${song.constant.toFixed(1)}</td>
+                    <td>${song.score.toLocaleString()}</td>
+                    <td>${song.rating.toFixed(2)}</td>
+                    <td><button class="delete-btn" data-id="${song.id}">×</button></td>
+                `;
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                function updateUI() {
+                    // Save to LocalStorage
+                    try {
+                        localStorage.setItem('chunithmValcalc_songList', JSON.stringify(songList));
+                    } catch (e) {
+                        // Ignore save errors
+                    }
+
+                    // Separate lists
+                    const newSongs = songList.filter(s => s.isNew).sort((a, b) => b.rating - a.rating);
+                    const bestSongs = songList.filter(s => !s.isNew).sort((a, b) => b.rating - a.rating);
+
+                    // Render Tables
+                    renderTable(newSongTableBody, newSongs);
+                    renderTable(bestSongTableBody, bestSongs);
+
+                    // Add delete listeners (re-binding)
+                    document.querySelectorAll('.delete-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const id = parseInt(e.target.getAttribute('data-id'));
+                            songList = songList.filter(s => s.id !== id);
+                            updateUI();
+                        });
+                    });
+
+                    // Calculate Stats
+
+                    // New Frame (Top 20)
+                    const topNew20 = newSongs.slice(0, 20);
+                    const topNew20Sum = topNew20.reduce((sum, s) => sum + s.rating, 0);
+                    const newDivisor = Math.max(1, topNew20.length);
+                    const newAvg = topNew20Sum / newDivisor;
+
+                    // Best Frame (Top 30)
+                    const topBest30 = bestSongs.slice(0, 30);
+                    const topBest30Sum = topBest30.reduce((sum, s) => sum + s.rating, 0);
+                    const bestDivisor = Math.max(1, topBest30.length);
+                    const bestAvg = topBest30Sum / bestDivisor;
+
+                    // Total Average (50 songs)
+                    const totalUsedCount = topNew20.length + topBest30.length;
+                    const totalUsedSum = topNew20Sum + topBest30Sum;
+                    const totalDivisor = Math.max(1, totalUsedCount);
+                    const totalAvg = totalUsedSum / totalDivisor;
+
+                    // Display
+                    newRatingDisplay.textContent = newAvg.toFixed(2);
+                    bestRatingDisplay.textContent = bestAvg.toFixed(2);
+                    totalRatingDisplay.textContent = totalAvg.toFixed(2);
+                }
+            });
+        } catch (globalE) {
+            const errorDiv = document.getElementById('global-error');
+            if (errorDiv) {
+                errorDiv.style.display = 'block';
+                errorDiv.textContent += `Global Init Error: ${globalE.message}\n`;
+            }
+        }
+    </script>
+</body>
+
+</html>
+```
