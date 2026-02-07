@@ -705,20 +705,19 @@
                     // New Frame (Top 20)
                     const topNew20 = newSongs.slice(0, 20);
                     const topNew20Sum = topNew20.reduce((sum, s) => sum + s.rating, 0);
-                    const newDivisor = Math.max(1, topNew20.length);
-                    const newAvg = topNew20Sum / newDivisor;
+                    // Divisor is fixed at 20 (empty slots = 0)
+                    const newAvg = topNew20Sum / 20;
 
                     // Best Frame (Top 30)
                     const topBest30 = bestSongs.slice(0, 30);
                     const topBest30Sum = topBest30.reduce((sum, s) => sum + s.rating, 0);
-                    const bestDivisor = Math.max(1, topBest30.length);
-                    const bestAvg = topBest30Sum / bestDivisor;
+                    // Divisor is fixed at 30 (empty slots = 0)
+                    const bestAvg = topBest30Sum / 30;
 
                     // Total Average (50 songs)
-                    const totalUsedCount = topNew20.length + topBest30.length;
                     const totalUsedSum = topNew20Sum + topBest30Sum;
-                    const totalDivisor = Math.max(1, totalUsedCount);
-                    const totalAvg = totalUsedSum / totalDivisor;
+                    // Divisor is fixed at 50
+                    const totalAvg = totalUsedSum / 50;
 
                     // Display
                     newRatingDisplay.textContent = newAvg.toFixed(2);
