@@ -656,7 +656,10 @@
                     }
 
                     if (rating < 0) rating = 0;
-                    return Math.floor(rating * 100) / 100;
+
+                    // Fix floating point errors (e.g. 14.9 + 2.15 = 17.04999...)
+                    // Use a small epsilon to ensure x.x5 is treated as x.x5 before flooring
+                    return Math.floor((rating + 0.00001) * 100) / 100;
                 }
 
                 function renderTable(tbody, songs) {
