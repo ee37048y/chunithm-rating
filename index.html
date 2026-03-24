@@ -657,8 +657,11 @@
 
                     if (rating < 0) rating = 0;
 
-                    // Fix floating point errors (e.g. 14.9 + 2.15 = 17.04999...)
-                    // Use a small epsilon to ensure x.x5 is treated as x.x5 before flooring
+                    // Explicitly handle precision by fixing to 5 decimal places first
+                    // 14.0 + 2.15 becomes 16.15000 (string) -> 16.15 (number)
+                    rating = parseFloat(rating.toFixed(5));
+
+                    // Add epsilon and floor to 2 decimal places
                     return Math.floor((rating + 0.00001) * 100) / 100;
                 }
 
@@ -723,9 +726,9 @@
                     const totalAvg = totalUsedSum / 50;
 
                     // Display
-                    newRatingDisplay.textContent = newAvg.toFixed(2);
-                    bestRatingDisplay.textContent = bestAvg.toFixed(2);
-                    totalRatingDisplay.textContent = totalAvg.toFixed(2);
+                    newRatingDisplay.textContent = (Math.floor((newAvg + 0.00001) * 100) / 100).toFixed(2);
+                    bestRatingDisplay.textContent = (Math.floor((bestAvg + 0.00001) * 100) / 100).toFixed(2);
+                    totalRatingDisplay.textContent = (Math.floor((totalAvg + 0.00001) * 100) / 100).toFixed(2);
                 }
             });
         } catch (globalE) {
